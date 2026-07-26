@@ -1,0 +1,433 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Simulador de Financiamento de Veículos</title>
+    <style>
+        :root {
+            --primary-color: #2563eb;
+            --primary-hover: #1d4ed8;
+            --card-bg: rgba(255, 255, 255, 0.96);
+            --text-color: #1f2937;
+            --border-color: #d1d5db;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 30px 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+            position: relative;
+            
+            background-image: url('https://images.unsplash.com/photo-1552519507-da3b142c6e3d?q=80&w=1920&auto=format&fit=crop');
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+            background-attachment: fixed;
+        }
+
+        .bg-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.65);
+            z-index: 1;
+        }
+
+        .container {
+            background-color: var(--card-bg);
+            padding: 40px;
+            border-radius: 14px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
+            width: 100%;
+            max-width: 700px; /* Caixa principal maior */
+            position: relative;
+            z-index: 2;
+            margin: 20px;
+            box-sizing: border-box;
+        }
+
+        h1 {
+            text-align: center;
+            font-size: 2.2rem; /* Fonte maior */
+            margin-bottom: 30px;
+            color: var(--primary-color);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            font-weight: 600;
+            margin-bottom: 8px;
+            font-size: 1.05rem; /* Fonte maior para os rótulos */
+            color: #374151;
+        }
+
+        input {
+            width: 100%;
+            padding: 14px;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            font-size: 1.15rem; /* Fonte maior nos inputs */
+            box-sizing: border-box;
+            background-color: #f9fafb;
+        }
+
+        input:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.2);
+        }
+
+        button {
+            width: 100%;
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            padding: 16px;
+            font-size: 1.25rem; /* Botão maior */
+            font-weight: 700;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: background-color 0.2s;
+            margin-top: 20px;
+            text-transform: uppercase;
+        }
+
+        button:hover {
+            background-color: var(--primary-hover);
+        }
+
+        /* Área de Resultados */
+        .results {
+            margin-top: 30px;
+            border-top: 2px solid var(--border-color);
+            padding-top: 25px;
+            display: none;
+        }
+
+        .result-highlight {
+            background: linear-gradient(135deg, #eff6ff, #dbeafe);
+            border: 2px solid #bfdbfe;
+            border-radius: 12px;
+            padding: 25px;
+            text-align: center;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 6px rgba(37, 99, 235, 0.05);
+        }
+
+        .result-highlight span {
+            display: block;
+            font-size: 1.05rem;
+            color: #1e40af;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 8px;
+        }
+
+        .result-highlight strong {
+            font-size: 2.5rem; /* Valor da parcela ainda mais evidente */
+            color: var(--primary-color);
+            font-weight: 800;
+        }
+
+        .result-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin-bottom: 15px;
+        }
+
+        .result-card {
+            background-color: #f3f4f6;
+            padding: 16px 18px;
+            border-radius: 10px;
+            border-left: 5px solid var(--primary-color);
+        }
+
+        .result-card span {
+            display: block;
+            font-size: 0.95rem; /* Fonte maior */
+            color: #4b5563;
+            margin-bottom: 6px;
+        }
+
+        .result-card strong {
+            font-size: 1.2rem; /* Fonte maior */
+            color: #1f2937;
+        }
+
+        .result-total {
+            background-color: #1e293b;
+            color: white;
+            padding: 18px 20px;
+            border-radius: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 15px;
+        }
+
+        .result-total span {
+            font-size: 1.1rem; /* Fonte maior */
+            font-weight: 600;
+        }
+
+        .result-total strong {
+            font-size: 1.5rem; /* Fonte maior */
+            color: #60a5fa;
+        }
+
+        /* ---------------------------------------------------- */
+        /* CAIXA DE INFORMAÇÕES AMPLIADA E COM FONTES MAIORES  */
+        /* ---------------------------------------------------- */
+        .info-box {
+            background: linear-gradient(135deg, #ffffff, #f8fafc);
+            padding: 40px;
+            border-radius: 14px;
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.4);
+            width: 100%;
+            max-width: 700px; /* Caixa de informações maior, do mesmo tamanho da principal */
+            position: relative;
+            z-index: 2;
+            margin: 0 20px 40px 20px;
+            box-sizing: border-box;
+            color: #374151;
+            border-top: 6px solid var(--primary-color);
+        }
+
+        .info-box h3 {
+            color: var(--primary-color);
+            margin-top: 0;
+            font-size: 1.6rem; /* Título maior */
+            border-bottom: 2px solid #e5e7eb;
+            padding-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .info-box > p {
+            font-size: 1.1rem; /* Texto introdutório maior */
+            line-height: 1.7;
+            color: #4b5563;
+            margin-bottom: 25px;
+        }
+
+        .info-step {
+            background-color: #f1f5f9;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            border-left: 5px solid #3b82f6;
+        }
+
+        .info-step h4 {
+            margin: 0 0 8px 0;
+            color: #1e293b;
+            font-size: 1.2rem; /* Subtítulos dos passos maiores */
+        }
+
+        .info-step p {
+            margin: 0;
+            font-size: 1.02rem; /* Descrições maiores */
+            color: #64748b;
+            line-height: 1.6;
+        }
+
+        @media (max-width: 600px) {
+            .container, .info-box { padding: 25px; }
+            h1 { font-size: 1.8rem; }
+            .result-grid { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="bg-overlay"></div>
+
+    <div class="container">
+        <h1>Simular Veículo</h1>
+        
+        <form id="calcForm">
+            <div class="form-group">
+                <label for="valorTotal">Valor Total do Carro (R$):</label>
+                <input type="text" id="valorTotal" placeholder="Ex: 65.000,00" oninput="mascaraMoeda(this)" required>
+            </div>
+
+            <div class="form-group">
+                <label for="valorEntrada">Valor da Entrada (R$):</label>
+                <input type="text" id="valorEntrada" placeholder="Ex: 20.000,00" oninput="mascaraMoeda(this)" required>
+            </div>
+
+            <div class="form-group">
+                <label for="taxaJuros">Taxa de Juros Mensal (%):</label>
+                <input type="text" id="taxaJuros" placeholder="Ex: 1,29" oninput="mascaraPorcentagem(this)" required>
+            </div>
+
+            <div class="form-group">
+                <label for="numParcelas">Número de Parcelas:</label>
+                <input type="number" id="numParcelas" step="1" placeholder="Ex: 48" required>
+            </div>
+
+            <div class="form-group">
+                <label for="taxaIpva">Alíquota IPVA Estimada (%):</label>
+                <input type="text" id="taxaIpva" value="4,0" placeholder="Ex: 4,0" oninput="mascaraPorcentagem(this)" required>
+            </div>
+
+            <button type="button" onclick="calcularFinanciamento()">Calcular Parcelas</button>
+        </form>
+
+        <div class="results" id="resultsArea">
+            <div class="result-highlight">
+                <span>Parcela Mensal (aprox.)</span>
+                <strong id="resParcela">R$ 0,00</strong>
+            </div>
+
+            <div class="result-grid">
+                <div class="result-card">
+                    <span>Valor Financiado</span>
+                    <strong id="resFinanciado">R$ 0,00</strong>
+                </div>
+                <div class="result-card">
+                    <span>Total de Juros</span>
+                    <strong id="resJuros">R$ 0,00</strong>
+                </div>
+            </div>
+
+            <div class="result-grid" style="margin-bottom: 0;">
+                <div class="result-card">
+                    <span>IPVA Estimado (Anual)</span>
+                    <strong id="resIpva">R$ 0,00</strong>
+                </div>
+                <div class="result-card" style="border-left-color: #f59e0b;">
+                    <span>Prazo Escolhido</span>
+                    <strong id="resPrazo">0 meses</strong>
+                </div>
+            </div>
+
+            <div class="result-total">
+                <span>Total Geral Pago:</span>
+                <strong id="resTotalFinal">R$ 0,00</strong>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bloco de Informações Ampliado e Com Fontes Maiores -->
+    <div class="info-box">
+        <h3>ℹ️ Como Funciona o Financiamento de Veículos?</h3>
+        <p>O financiamento automotivo é uma linha de crédito onde a instituição financeira quita o valor total do veículo junto à loja, e você assume a responsabilidade de pagar essa dívida parcelada ao longo do tempo com acréscimo de juros.</p>
+        
+        <div class="info-step">
+            <h4>1. Valor de Entrada</h4>
+            <p>É a quantia inicial paga do próprio bolso. Quanto maior for o valor da sua entrada, menor será o saldo financiado, reduzindo o impacto dos juros e diminuindo a parcela mensal.</p>
+        </div>
+
+        <div class="info-step">
+            <h4>2. Taxa de Juros e Tabela Price</h4>
+            <p>Os juros incidem mensalmente sobre o saldo devedor. Este simulador adota a <em>Tabela Price</em>, um sistema onde o valor das prestações permanece fixo do primeiro ao último mês do contrato.</p>
+        </div>
+
+        <div class="info-step">
+            <h4>3. Custos Adicionais e Impostos (IPVA)</h4>
+            <p>Lembre-se de que ter um veículo vai além das parcelas do financiamento. É essencial planejar custos recorrentes como o imposto IPVA (calculado proporcionalmente acima), seguros obrigatórios, manutenções e combustível.</p>
+        </div>
+    </div>
+
+    <script>
+        function mascaraMoeda(campo) {
+            let valor = campo.value.replace(/\D/g, "");
+            if (valor === "") {
+                campo.value = "";
+                return;
+            }
+            valor = (parseFloat(valor) / 100).toFixed(2);
+            valor = valor.replace(".", ",");
+            valor = valor.replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+            campo.value = valor;
+        }
+
+        function mascaraPorcentagem(campo) {
+            let valor = campo.value.replace(/[^0-9,]/g, "");
+            campo.value = valor;
+        }
+
+        function converterParaNumero(stringValor) {
+            if (!stringValor) return 0;
+            let limpo = stringValor.replace(/\./g, "").replace(",", ".");
+            return parseFloat(limpo) || 0;
+        }
+
+        function calcularFinanciamento() {
+            const valorTotal = converterParaNumero(document.getElementById('valorTotal').value);
+            const valorEntrada = converterParaNumero(document.getElementById('valorEntrada').value);
+            const taxaJurosInput = document.getElementById('taxaJuros').value.replace(",", ".");
+            const taxaJurosMensal = (parseFloat(taxaJurosInput) || 0) / 100;
+            const numParcelas = parseInt(document.getElementById('numParcelas').value) || 0;
+            const taxaIpvaInput = document.getElementById('taxaIpva').value.replace(",", ".");
+            const taxaIpva = (parseFloat(taxaIpvaInput) || 0) / 100;
+
+            if (valorTotal <= 0) {
+                alert("O valor do carro deve ser maior que zero.");
+                return;
+            }
+            if (valorEntrada < 0) {
+                alert("A entrada não pode ser negativa.");
+                return;
+            }
+            if (valorEntrada >= valorTotal) {
+                alert("O valor da entrada não pode ser igual ou maior que o valor do carro.");
+                return;
+            }
+            if (numParcelas <= 0) {
+                alert("O número de parcelas deve ser pelo menos 1.");
+                return;
+            }
+
+            const valorFinanciado = valorTotal - valorEntrada;
+            const valorIpva = valorTotal * taxaIpva;
+
+            let valorParcela = 0;
+            let totalJuros = 0;
+
+            if (taxaJurosMensal === 0) {
+                valorParcela = valorFinanciado / numParcelas;
+                totalJuros = 0;
+            } else {
+                const i = taxaJurosMensal;
+                const n = numParcelas;
+                valorParcela = valorFinanciado * (i * Math.pow(1 + i, n)) / (Math.pow(1 + i, n) - 1);
+                totalJuros = (valorParcela * n) - valorFinanciado;
+            }
+
+            const valorTotalFinal = valorFinanciado + totalJuros + valorEntrada;
+
+            document.getElementById('resFinanciado').textContent = formatarMoeda(valorFinanciado);
+            document.getElementById('resParcela').textContent = formatarMoeda(valorParcela);
+            document.getElementById('resIpva').textContent = formatarMoeda(valorIpva);
+            document.getElementById('resJuros').textContent = formatarMoeda(totalJuros);
+            document.getElementById('resTotalFinal').textContent = formatarMoeda(valorTotalFinal);
+            document.getElementById('resPrazo').textContent = numParcelas + " meses";
+
+            document.getElementById('resultsArea').style.display = 'block';
+        }
+
+        function formatarMoeda(valor) {
+            return valor.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+        }
+    </script>
+
+</body>
+</html>
